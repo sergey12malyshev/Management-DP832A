@@ -1,4 +1,12 @@
-# для установки необходимо ввести в CMD: python -m pip install pysimplegui
+# Author: Malyshev Sergey 2022
+#
+# References
+#  - http://www.batronix.com/pdf/Rigol/ProgrammingGuide/DP800_ProgrammingGuide_EN.pdf
+#
+# Instructions
+# - Download and install National Instruments VISA software (https://www.ni.com/visa/ OR https://skachat.freedownloadmanager.org/Windows-PC/NI-VISA-Runtime/FREE-5.4.html)
+# - Download and install PyVISA (eg. "pip install -U pyvisa" from CMD)
+# - Download and install PySimpleGUI ("python -m pip install pysimplegui" from CMD)
 
 import PySimpleGUI as sg
 import pyvisa
