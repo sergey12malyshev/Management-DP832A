@@ -13,22 +13,20 @@ import pyvisa
 import time
 
 sg.theme('Dark Amber')  # Let's set our own color theme
-
 rm = pyvisa.ResourceManager()
-psu = rm.open_resource('USB0::0x1AB1::0x0E11::DP8B241601290::INSTR')
 
-work_mode = 'CH1'
+try: 
+  psu = rm.open_resource('USB0::0x1AB1::0x0E11::DP8B241601290::INSTR')
+except:
+  sg.popup('Error: Not connection DP832A')  
+  
+#sg.theme_previewer() # Просмотр всех доступных тем
 
-# sg.theme_previewer() # Просмотр всех доступных тем
-
-
-#--------------------------GLOBAL VARIABLES-----------------------------------
+#--------------------------GLOBAL VARIABLES------------------------------------------
 # https://proglib.io/p/python-oop
 
-delay = 0.01
-power = 0
-volt = 0
-current = 0
+work_mode = 'CH1'
+delayAfterMeasurement = 0.01
 
 class canal_DP832(object): # Создали класс 
   voltage = 0 # Свойства классов
@@ -60,15 +58,15 @@ ch3.current = 0.3
 ch3.ovp = 5.5
 ch3.ocp = 0.5
 
-layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.Text(f'{ch1.measVolt}', size=(5, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_1-'), sg.Text(f'{ch1.measCurrent}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_1-')], 
+layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.Text(f'{ch1.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_1-', text_color='yellow'), sg.Text(f'{ch1.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_1-', text_color='yellow')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch1.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out'), sg.InputText(key='-VOLTAGE-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch1_ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out'), sg.InputText(key='-OVP-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch1.current}', size=(4, 1), font=('Helvetica 11'), key='current_out'), sg.InputText(key='-CURRENT-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch1_ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out'), sg.InputText(key='-OCP-', size=(6, 1))]])],
             
-            [sg.Frame('CH2', [[sg.Button('Set CH2'), sg.Button('Reset CH2'), sg.Text(f'{ch2.measVolt}', size=(5, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_2-'), sg.Text(f'{ch2.measCurrent}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_2-')], 
+            [sg.Frame('CH2', [[sg.Button('Set CH2'), sg.Button('Reset CH2'), sg.Text(f'{ch2.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_2-', text_color = 'cyan'), sg.Text(f'{ch2.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_2-', text_color = 'cyan')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch2.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out2'), sg.InputText(key='-VOLTAGE2-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch2_ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out2'), sg.InputText(key='-OVP2-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch2.current}', size=(4, 1), font=('Helvetica 11'), key='current_out2'), sg.InputText(key='-CURRENT2-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch2_ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out2'), sg.InputText(key='-OCP2-', size=(6, 1))]])],
             
-            [sg.Frame('CH3', [[sg.Button('Set CH3'), sg.Button('Reset CH3'), sg.Text(f'{ch3.measVolt}', size=(5, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_3-'), sg.Text(f'{ch3.measCurrent}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_3-')], 
+            [sg.Frame('CH3', [[sg.Button('Set CH3'), sg.Button('Reset CH3'), sg.Text(f'{ch3.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_3-', text_color = 'magenta'), sg.Text(f'{ch3.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_3-', text_color = 'magenta')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch3.voltage} ', size=(4, 1), font=('Helvetica 11'), key='voltage_out3'), sg.InputText(key='-VOLTAGE3-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch3.ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out3'), sg.InputText(key='-OVP3-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch3.current}', size=(4, 1), font=('Helvetica 11'), key='current_out3'), sg.InputText(key='-CURRENT3-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch3.ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out3'), sg.InputText(key='-OCP3-', size=(6, 1))]])],
             
@@ -141,21 +139,21 @@ def measVolt (chan):
     cmd1 = ':MEAS:VOLT? CH%s' %chan
     V = psu.query(cmd1)
     V = float(V)
-    time.sleep(delay)
+    time.sleep(delayAfterMeasurement)
     return V
 
 def measCurrent (chan): 			
     cmd1 = ':MEAS:CURR? CH%s' %chan
     C = psu.query(cmd1)
     C = float(C)
-    time.sleep(delay)
+    time.sleep(delayAfterMeasurement)
     return C
 
 def measPower (chan): 			
     cmd1 = ':MEAS:POWE? CH%s' %chan
     P = psu.query(cmd1)
     P = float(P)
-    time.sleep(delay)
+    time.sleep(delayAfterMeasurement)
     return P
 
 def debugOut (): 			
@@ -179,12 +177,12 @@ def mainMeas ():
     #debugOut ()
     
 def screenUpdateValue ():
-    window['-OUTPUT_VOLT_1-'].update(ch1.measVolt)  
-    window['-OUTPUT_CURR_1-'].update(ch1.measCurrent) 
-    window['-OUTPUT_VOLT_2-'].update(ch2.measVolt)  
-    window['-OUTPUT_CURR_2-'].update(ch2.measCurrent) 
-    window['-OUTPUT_VOLT_3-'].update(ch3.measVolt)  
-    window['-OUTPUT_CURR_3-'].update(ch3.measCurrent)    
+    window['-OUTPUT_VOLT_1-'].update(str(ch1.measVolt) + " V") 
+    window['-OUTPUT_CURR_1-'].update(str(ch1.measCurrent) + " A") 
+    window['-OUTPUT_VOLT_2-'].update(str(ch2.measVolt) + " V")  
+    window['-OUTPUT_CURR_2-'].update(str(ch2.measCurrent) + " A") 
+    window['-OUTPUT_VOLT_3-'].update(str(ch3.measVolt) + " V")  
+    window['-OUTPUT_CURR_3-'].update(str(ch3.measCurrent) + " A")    
   
 #--------------------------------MAIN------------------------------------------------
  
@@ -194,8 +192,8 @@ window = sg.Window('Run DP832A', layout)
 # STEP3 - the event loop
 while True:
   
-    event, values = window.read(timeout=200)   # Read the event that happened and the values dictionary, timeout=100 - не блокирующий режим  
-    print(event, values)
+    event, values = window.read(timeout=200)   # Read the event that happened and the values dictionary, timeout=200 - не блокирующий режим  
+    #print(event, values) #DEBUG
     
     if event == sg.WIN_CLOSED or event == 'Exit':     # If user closed window with X or if user clicked "Exit" button then exit
         break
