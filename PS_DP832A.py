@@ -28,7 +28,7 @@ delayAfterMeasurement = 0.01
 #--------------------------GENERAL CLASS------------------------------------------
 # https://proglib.io/p/python-oop
 
-class canal_DP832(object): # Создали класс 
+class Canal_DP832(object): # Создали класс 
     voltage = 0 # Свойства классов
     current = 0
     ovp = 0
@@ -41,10 +41,10 @@ class canal_DP832(object): # Создали класс
     def run_channel(self, channel, voltage, current, ocp): # Создали метод запуска канала
         print(psu.query("*IDN?"))
         psu.write(f":INST CH{channel}") # Select channel
-        psu.write(f":CURR {current}") # Set the current 
+        psu.write(f":CURR {current}")   # Set the current 
         psu.write(f":CURR:PROT {ocp}")  # Set the overcurrent protection value
         psu.write(":CURR:PROT:STAT ON") # Enable the overcurrent protection function
-        psu.write(f":VOLT {voltage}") # Set the voltage
+        psu.write(f":VOLT {voltage}")   # Set the voltage
         psu.write(f":OUTP CH{channel},ON") # Enable the output of channel 
         window['quote'].update(f'{channel}: {voltage} V, {current} A, OCP {ocp} A')
     
@@ -59,9 +59,9 @@ class canal_DP832(object): # Создали класс
         self.off_channel(3);
         window['quote'].update('Output all disable')
    
-ch1 = canal_DP832() # Экземпляры классов
-ch2 = canal_DP832()
-ch3 = canal_DP832()
+ch1 = Canal_DP832() # Экземпляры классов(объекты)
+ch2 = Canal_DP832()
+ch3 = Canal_DP832()
 
 # Установить значения по умолчанию
 ch1.voltage = 24
@@ -96,7 +96,6 @@ layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.
          ]
 
 #--------------------------GENERAL FUNCTIONS-----------------------------------------
-       
 def measVolt(chan): 			
     cmd1 = ':MEAS:VOLT? CH%s' %chan
     V = psu.query(cmd1)
