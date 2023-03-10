@@ -29,7 +29,7 @@ delayAfterMeasurement = 0.01
 # https://proglib.io/p/python-oop
 
 class Canal_DP832(object): # Создали класс 
-    measPower = 0 # Свойства классов
+    measPower = 0 # Свойства классов(атрибуты)
     measVolt = 0
     measCurrent = 0
     
@@ -110,7 +110,7 @@ def mainMeas():
         print("Power: " + str(ch2.power) + " mW" + "    Voltage: " + str(ch2.volt) + " V" + "    Current: " + str(ch2.current) + " A")
         print("Power: " + str(ch3.power) + " mW" + "    Voltage: " + str(ch3.volt) + " V" + "    Current: " + str(ch3.current) + " A")  
     
-    ch1.measPower = measPower(1)	
+    ch1.measPower = measPower(1) #создали атрибут объекта	
     ch1.measVolt = round(measVolt(1), 2)
     ch1.measCurrent = round(measCurrent(1), 4)
  
