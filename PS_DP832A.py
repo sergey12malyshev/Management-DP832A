@@ -29,15 +29,16 @@ delayAfterMeasurement = 0.01
 # https://proglib.io/p/python-oop
 
 class Canal_DP832(object): # Создали класс 
-    voltage = 0 # Свойства классов
-    current = 0
-    ovp = 0
-    ocp = 0
-  
-    measPower = 0
+    measPower = 0 # Свойства классов
     measVolt = 0
     measCurrent = 0
-  
+    
+    def __init__(self, voltage, current, ovp, ocp): # Конструктор
+        self.voltage = voltage
+        self.current = current
+        self.ovp = ovp
+        self.ocp = ocp
+     
     def run_channel(self, channel, voltage, current, ocp): # Создали метод запуска канала
         print(psu.query("*IDN?"))
         psu.write(f":INST CH{channel}") # Select channel
@@ -59,25 +60,10 @@ class Canal_DP832(object): # Создали класс
         self.off_channel(3);
         window['quote'].update('Output all disable')
    
-ch1 = Canal_DP832() # Экземпляры классов(объекты)
-ch2 = Canal_DP832()
-ch3 = Canal_DP832()
+ch1 = Canal_DP832(24, 0.2, 33, 3) # Экземпляры классов(объекты)
+ch2 = Canal_DP832(24, 0.3, 33, 3) # Установить значения по умолчанию
+ch3 = Canal_DP832(5, 0.3, 5.5, 0.5)
 
-# Установить значения по умолчанию
-ch1.voltage = 24
-ch1.current = 0.2
-ch1.ovp = 33
-ch1.ocp = 3
-
-ch2.voltage = 24
-ch2.current = 0.3
-ch2_ovp = 33
-ch2.ocp = 3
-
-ch3.voltage = 5
-ch3.current = 0.3
-ch3.ovp = 5.5
-ch3.ocp = 0.5
 
 layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.Text(f'{ch1.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_1-', text_color='yellow'), sg.Text(f'{ch1.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_1-', text_color='yellow')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch1.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out'), sg.InputText(key='-VOLTAGE-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch1.ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out'), sg.InputText(key='-OVP-', size=(6, 1))],
