@@ -70,7 +70,7 @@ layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch1.current}', size=(4, 1), font=('Helvetica 11'), key='current_out'), sg.InputText(key='-CURRENT-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch1.ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out'), sg.InputText(key='-OCP-', size=(6, 1))]])],
             
             [sg.Frame('CH2', [[sg.Button('Set CH2'), sg.Button('Reset CH2'), sg.Text(f'{ch2.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_2-', text_color = 'cyan'), sg.Text(f'{ch2.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_2-', text_color = 'cyan')], 
-            [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch2.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out2'), sg.InputText(key='-VOLTAGE2-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch2_ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out2'), sg.InputText(key='-OVP2-', size=(6, 1))],
+            [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch2.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out2'), sg.InputText(key='-VOLTAGE2-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch2.ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out2'), sg.InputText(key='-OVP2-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch2.current}', size=(4, 1), font=('Helvetica 11'), key='current_out2'), sg.InputText(key='-CURRENT2-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch2.ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out2'), sg.InputText(key='-OCP2-', size=(6, 1))]])],
             
             [sg.Frame('CH3', [[sg.Button('Set CH3'), sg.Button('Reset CH3'), sg.Text(f'{ch3.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_3-', text_color = 'magenta'), sg.Text(f'{ch3.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_3-', text_color = 'magenta')], 
@@ -174,7 +174,7 @@ while True:
             ch2.current = values['-CURRENT2-']
             window['current_out2'].update(values['-CURRENT2-'])
         if values['-OVP2-'] > '0':
-            ch2_ovp = values['-OVP2-']
+            ch2.ovp = values['-OVP2-']
             window['OVP_out2'].update(values['-OVP2-'])
         if values['-OCP2-'] > '0':
             ch2.ocp = values['-OCP2-']
