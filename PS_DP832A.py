@@ -36,7 +36,6 @@ class Canal_DP832(object): # Создали класс
         self.ovp = ovp
         self.ocp = ocp
         
-     
     def run_channel(self, voltage, current, ocp): # Создали метод запуска канала
         if NO_DEBUG_CONNECT_PSU:
             print(psu.query("*IDN?"))
@@ -146,7 +145,6 @@ layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.
 window = sg.Window('Run DP832A', layout)
 
 while True:
-  
     event, values = window.read(timeout=200)   # Read the event that happened and the values dictionary, timeout=200 - не блокирующий режим  
     if DEBUG: print(event, values)
     
@@ -225,6 +223,5 @@ while True:
         mainMeas()
         
     screenUpdateValue()
-
-     
+   
 window.close()
