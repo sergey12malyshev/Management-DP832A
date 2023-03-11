@@ -8,7 +8,7 @@
 # - Download and install PyVISA (eg. "pip install -U pyvisa" from CMD)
 # - Download and install PySimpleGUI ("python -m pip install pysimplegui" from CMD)
 
-import PySimpleGUI as sg #https://www.pysimplegui.org/en/latest/cookbook/
+import PySimpleGUI as sg # https://www.pysimplegui.org/en/latest/cookbook/
 import pyvisa
 import time
 
@@ -25,38 +25,40 @@ NO_DEBUG_CONNECT_PSU = True # False для запуска без активно�
 # https://proglib.io/p/python-oop
 
 class Canal_DP832(object): # Создали класс 
-    measPower = 0 # Свойства классов(атрибуты)
+    measPower = 0 # Свойства класса(атрибуты)
     measVolt = 0
     measCurrent = 0
     
-    def __init__(self, voltage, current, ovp, ocp): # Конструктор
+    def __init__(self, number, voltage, current, ovp, ocp): # Конструктор
+        self.channelNumber = number
         self.voltage = voltage
         self.current = current
         self.ovp = ovp
         self.ocp = ocp
+        
      
-    def run_channel(self, channel, voltage, current, ocp): # Создали метод запуска канала
+    def run_channel(self, voltage, current, ocp): # Создали метод запуска канала
         if NO_DEBUG_CONNECT_PSU:
             print(psu.query("*IDN?"))
-            psu.write(f":INST CH{channel}") # Select channel
+            psu.write(f":INST CH{self.channelNumber}") # Select channel
             psu.write(f":CURR {current}")   # Set the current 
             psu.write(f":CURR:PROT {ocp}")  # Set the overcurrent protection value
             psu.write(":CURR:PROT:STAT ON") # Enable the overcurrent protection function
             psu.write(f":VOLT {voltage}")   # Set the voltage
-            psu.write(f":OUTP CH{channel},ON") # Enable the output of channel """
-        window['quote'].update(f'CH{channel}: {voltage} V, {current} A, OCP {ocp} A')
+            psu.write(f":OUTP CH{self.channelNumber},ON") # Enable the output of channel """
+        window['quote'].update(f'CH{self.channelNumber}: {voltage} V, {current} A, OCP {ocp} A')
     
-    def off_channel(self, channel):
+    def off_channel(self):
         if NO_DEBUG_CONNECT_PSU:
-            psu.write(f":OUTP CH{channel},OFF") # disable the output of channel
-        print(f"channel {channel} DP832A disable")
-        window['quote'].update(f'Output CH{channel} disable')
+            psu.write(f":OUTP CH{self.channelNumber},OFF") # Disable the output of channel
+        print(f"channel {self.channelNumber} DP832A disable")
+        window['quote'].update(f'Output CH{self.channelNumber} disable')
            
 #--------------------------GENERAL FUNCTIONS---------------------------------------
 def off_all_channel():
-    ch1.off_channel(1);
-    ch2.off_channel(2);
-    ch3.off_channel(3);
+    ch1.off_channel();
+    ch2.off_channel();
+    ch3.off_channel();
     window['quote'].update('Output all disable')
         
 def measVolt(chan): 			
@@ -86,7 +88,7 @@ def mainMeas():
         print("Power: " + str(ch2.power) + " mW" + "    Voltage: " + str(ch2.volt) + " V" + "    Current: " + str(ch2.current) + " A")
         print("Power: " + str(ch3.power) + " mW" + "    Voltage: " + str(ch3.volt) + " V" + "    Current: " + str(ch3.current) + " A")  
     
-    ch1.measPower = measPower(1) #создали атрибут объекта	
+    ch1.measPower = measPower(1) # Создали атрибут объекта	
     ch1.measVolt = round(measVolt(1), 2)
     ch1.measCurrent = round(measCurrent(1), 4)
  
@@ -117,11 +119,12 @@ if NO_DEBUG_CONNECT_PSU:
     try: 
       psu = rm.open_resource('USB0::0x1AB1::0x0E11::DP8B241601290::INSTR')
     except:
-      sg.popup('Error: Not connection DP832A')  
-
-ch1 = Canal_DP832(24, 0.2, 33, 3) # Экземпляры классов(объекты)
-ch2 = Canal_DP832(24, 0.3, 33, 3) # Установить значения по умолчанию
-ch3 = Canal_DP832(5, 0.3, 5.5, 0.5) 
+      sg.popup('Error: Not connection DP832A') 
+      
+# Экземпляры классов(объекты)
+ch1 = Canal_DP832(1, 24, 0.2, 33, 3) # Установить номер канала и значения параметров по умолчанию 
+ch2 = Canal_DP832(2, 24, 0.3, 33, 3) 
+ch3 = Canal_DP832(3, 5, 0.3, 5.5, 0.5) 
 
 #-------Сreate the GUI-----------
 layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.Text(f'{ch1.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_1-', text_color='yellow'), sg.Text(f'{ch1.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_1-', text_color='yellow')], 
@@ -165,10 +168,10 @@ while True:
         if values['-OCP-'] > '0':
             ch1.ocp = values['-OCP-']
             window['OCP_out'].update(values['-OCP-'])  
-        ch1.run_channel(1, ch1.voltage, ch1.current, ch1.ocp)
+        ch1.run_channel(ch1.voltage, ch1.current, ch1.ocp)
 
     if event == 'Reset CH1':
-        ch1.off_channel(1)
+        ch1.off_channel()
                 
     if event == 'Set CH2':
         if values['-VOLTAGE2-'] > '0':
@@ -183,10 +186,10 @@ while True:
         if values['-OCP2-'] > '0':
             ch2.ocp = values['-OCP2-']
             window['OCP_out2'].update(values['-OCP2-'])  
-        ch2.run_channel(2, ch2.voltage, ch2.current, ch2.ocp)
+        ch2.run_channel(ch2.voltage, ch2.current, ch2.ocp)
                 
     if event == 'Reset CH2':
-        ch1.off_channel(2)
+        ch1.off_channel()
     
     if event == 'Set CH3':
         if values['-VOLTAGE3-'] > '0':
@@ -201,19 +204,19 @@ while True:
         if values['-OCP3-'] > '0':
             ch3.ocp = values['-OCP3-']
             window['OCP_out3'].update(values['-OCP3-'])  
-        ch3.run_channel(3, ch3.voltage, ch3.current, ch3.ocp)
+        ch3.run_channel(ch3.voltage, ch3.current, ch3.ocp)
                 
     if event == 'Reset CH3':
-        ch1.off_channel(3)
+        ch1.off_channel()
                 
     if event == 'CH1':
-        ch1.run_channel(1, ch1.voltage, ch1.current, ch1.ocp)
+        ch1.run_channel(ch1.voltage, ch1.current, ch1.ocp)
         
     if event == 'CH2':
-        ch2.run_channel(2, ch2.voltage, ch2.current, ch2.ocp)
+        ch2.run_channel(ch2.voltage, ch2.current, ch2.ocp)
         
     if event == 'CH3':
-        ch3.run_channel(3, ch3.voltage, ch3.current, ch3.ocp)
+        ch3.run_channel(ch3.voltage, ch3.current, ch3.ocp)
         
     if event == 'OFF':
         off_all_channel()
