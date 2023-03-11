@@ -1,5 +1,4 @@
 # Author: Malyshev Sergey 2022, Ekaterinburg
-# https://github.com/sergey12malyshev
 #
 # References
 #  - http://www.batronix.com/pdf/Rigol/ProgrammingGuide/DP800_ProgrammingGuide_EN.pdf
@@ -13,19 +12,11 @@ import PySimpleGUI as sg #https://www.pysimplegui.org/en/latest/cookbook/
 import pyvisa
 import time
 
-sg.theme('Dark Amber')  # Let's set our own color theme
-rm = pyvisa.ResourceManager()
-
-try: 
-  psu = rm.open_resource('USB0::0x1AB1::0x0E11::DP8B241601290::INSTR')
-except:
-  sg.popup('Error: Not connection DP832A')  
-  
-#sg.theme_previewer() # Просмотр всех доступных тем
-
 #--------------------------GLOBAL VARIABLES CONST---------------------------------
 DELAY_AFTER_MEAS = 0.01
 DEBUG = False
+DEBUG_CONNECT_PSU = False # False для запуска без активного подключения
+
 #--------------------------GENERAL CLASS------------------------------------------
 # https://proglib.io/p/python-oop
 
@@ -41,24 +32,22 @@ class Canal_DP832(object): # Создали класс
         self.ocp = ocp
      
     def run_channel(self, channel, voltage, current, ocp): # Создали метод запуска канала
-        print(psu.query("*IDN?"))
-        psu.write(f":INST CH{channel}") # Select channel
-        psu.write(f":CURR {current}")   # Set the current 
-        psu.write(f":CURR:PROT {ocp}")  # Set the overcurrent protection value
-        psu.write(":CURR:PROT:STAT ON") # Enable the overcurrent protection function
-        psu.write(f":VOLT {voltage}")   # Set the voltage
-        psu.write(f":OUTP CH{channel},ON") # Enable the output of channel 
-        window['quote'].update(f'{channel}: {voltage} V, {current} A, OCP {ocp} A')
+        if DEBUG_CONNECT_PSU:
+            print(psu.query("*IDN?"))
+            psu.write(f":INST CH{channel}") # Select channel
+            psu.write(f":CURR {current}")   # Set the current 
+            psu.write(f":CURR:PROT {ocp}")  # Set the overcurrent protection value
+            psu.write(":CURR:PROT:STAT ON") # Enable the overcurrent protection function
+            psu.write(f":VOLT {voltage}")   # Set the voltage
+            psu.write(f":OUTP CH{channel},ON") # Enable the output of channel """
+        window['quote'].update(f'CH{channel}: {voltage} V, {current} A, OCP {ocp} A')
     
     def off_channel(self, channel):
-        psu.write(f":OUTP CH{channel},OFF") # disable the output of channel
+        if DEBUG_CONNECT_PSU:
+            psu.write(f":OUTP CH{channel},OFF") # disable the output of channel
         print(f"channel {channel} DP832A disable")
-        window['quote'].update(f'Output {channel} disable')
+        window['quote'].update(f'Output CH{channel} disable')
            
-ch1 = Canal_DP832(24, 0.2, 33, 3) # Экземпляры классов(объекты)
-ch2 = Canal_DP832(24, 0.3, 33, 3) # Установить значения по умолчанию
-ch3 = Canal_DP832(5, 0.3, 5.5, 0.5)
-
 #--------------------------GENERAL FUNCTIONS---------------------------------------
 def off_all_channel():
     ch1.off_channel(1);
@@ -105,7 +94,8 @@ def mainMeas():
     ch3.measVolt = round(measVolt(3), 2)
     ch3.measCurrent = round(measCurrent(3), 4)
     
-    if DEBUG: debugOut()
+    if DEBUG: 
+        debugOut()
     
 def screenUpdateValue():
     window['-OUTPUT_VOLT_1-'].update(str(ch1.measVolt) + " V") 
@@ -115,7 +105,21 @@ def screenUpdateValue():
     window['-OUTPUT_VOLT_3-'].update(str(ch3.measVolt) + " V")  
     window['-OUTPUT_CURR_3-'].update(str(ch3.measCurrent) + " A")    
   
-#--------------------------------GUI------------------------------------------------
+      
+sg.theme('Dark Amber')  # Let's set our own color theme (sg.theme_previewer() # Просмотр всех доступных тем)
+rm = pyvisa.ResourceManager()
+
+if DEBUG_CONNECT_PSU:
+    try: 
+      psu = rm.open_resource('USB0::0x1AB1::0x0E11::DP8B241601290::INSTR')
+    except:
+      sg.popup('Error: Not connection DP832A')  
+
+ch1 = Canal_DP832(24, 0.2, 33, 3) # Экземпляры классов(объекты)
+ch2 = Canal_DP832(24, 0.3, 33, 3) # Установить значения по умолчанию
+ch3 = Canal_DP832(5, 0.3, 5.5, 0.5) 
+
+#-------Сreate the GUI-----------
 layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.Text(f'{ch1.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_1-', text_color='yellow'), sg.Text(f'{ch1.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_1-', text_color='yellow')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch1.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out'), sg.InputText(key='-VOLTAGE-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch1.ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out'), sg.InputText(key='-OVP-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch1.current}', size=(4, 1), font=('Helvetica 11'), key='current_out'), sg.InputText(key='-CURRENT-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch1.ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out'), sg.InputText(key='-OCP-', size=(6, 1))]])],
@@ -130,11 +134,10 @@ layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.
             
             [sg.Frame('Fast preset', [[sg.Button('CH1'), sg.Button('CH2'), sg.Button('CH3'), sg.Button('OFF')]]), sg.Frame('System', [[sg.Button('Exit', size=(5, 1)), sg.Button('About', size=(5, 1))]])],
             [sg.Text('This is GUI driving Rigol DP832A', key='quote')]
-         ] 
-#STEP 2 - create the window
+         ]
+         
 window = sg.Window('Run DP832A', layout)
 
-#STEP3 - the event loop
 while True:
   
     event, values = window.read(timeout=200)   # Read the event that happened and the values dictionary, timeout=200 - не блокирующий режим  
@@ -211,7 +214,9 @@ while True:
     if event == 'OFF':
         off_all_channel()
 
-    mainMeas()
+    if DEBUG_CONNECT_PSU:
+        mainMeas()
+        
     screenUpdateValue()
 
      
