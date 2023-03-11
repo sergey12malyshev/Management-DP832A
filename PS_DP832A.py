@@ -13,10 +13,14 @@ import pyvisa
 import time
 
 #--------------------------GLOBAL VARIABLES CONST---------------------------------
+VERSION_MAJOR = 0
+VERSION_MINOR = 3
+VERSION_PATCH = 0
+
 DELAY_AFTER_MEAS = 0.01
+
 DEBUG = False
 NO_DEBUG_CONNECT_PSU = True # False для запуска без активного подключения
-
 #--------------------------GENERAL CLASS------------------------------------------
 # https://proglib.io/p/python-oop
 
@@ -146,7 +150,7 @@ while True:
     if event == sg.WIN_CLOSED or event == 'Exit':     # If user closed window with X or if user clicked "Exit" button then exit
         break
     if event == 'About': 
-        sg.popup('Run DP832A', 'Version 0.2.0', '2022, Ekaterinburg', sg.get_versions())    
+        sg.popup('Run DP832A', f'Version {VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}', '2022, Ekaterinburg', sg.get_versions())    
         
     if event == 'Set CH1':
         if values['-VOLTAGE-'] > '0':
