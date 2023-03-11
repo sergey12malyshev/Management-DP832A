@@ -15,7 +15,7 @@ import time
 #--------------------------GLOBAL VARIABLES CONST---------------------------------
 DELAY_AFTER_MEAS = 0.01
 DEBUG = False
-DEBUG_CONNECT_PSU = False # False для запуска без активного подключения
+DEBUG_CONNECT_PSU = True # False для запуска без активного подключения
 
 #--------------------------GENERAL CLASS------------------------------------------
 # https://proglib.io/p/python-oop
