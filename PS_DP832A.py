@@ -26,7 +26,6 @@ except:
 #--------------------------GLOBAL VARIABLES CONST---------------------------------
 DELAY_AFTER_MEAS = 0.01
 DEBUG = False
-
 #--------------------------GENERAL CLASS------------------------------------------
 # https://proglib.io/p/python-oop
 
@@ -210,7 +209,7 @@ while True:
         ch3.run_channel(3, ch3.voltage, ch3.current, ch3.ocp)
         
     if event == 'OFF':
-        ch1.off_all_channel()
+        off_all_channel()
 
     mainMeas()
     screenUpdateValue()
