@@ -15,7 +15,7 @@ import time
 #--------------------------GLOBAL VARIABLES CONST---------------------------------
 DELAY_AFTER_MEAS = 0.01
 DEBUG = False
-DEBUG_CONNECT_PSU = True # False для запуска без активного подключения
+NO_DEBUG_CONNECT_PSU = True # False для запуска без активного подключения
 
 #--------------------------GENERAL CLASS------------------------------------------
 # https://proglib.io/p/python-oop
@@ -32,7 +32,7 @@ class Canal_DP832(object): # Создали класс
         self.ocp = ocp
      
     def run_channel(self, channel, voltage, current, ocp): # Создали метод запуска канала
-        if DEBUG_CONNECT_PSU:
+        if NO_DEBUG_CONNECT_PSU:
             print(psu.query("*IDN?"))
             psu.write(f":INST CH{channel}") # Select channel
             psu.write(f":CURR {current}")   # Set the current 
@@ -43,7 +43,7 @@ class Canal_DP832(object): # Создали класс
         window['quote'].update(f'CH{channel}: {voltage} V, {current} A, OCP {ocp} A')
     
     def off_channel(self, channel):
-        if DEBUG_CONNECT_PSU:
+        if NO_DEBUG_CONNECT_PSU:
             psu.write(f":OUTP CH{channel},OFF") # disable the output of channel
         print(f"channel {channel} DP832A disable")
         window['quote'].update(f'Output CH{channel} disable')
@@ -109,7 +109,7 @@ def screenUpdateValue():
 sg.theme('Dark Amber')  # Let's set our own color theme (sg.theme_previewer() # Просмотр всех доступных тем)
 rm = pyvisa.ResourceManager()
 
-if DEBUG_CONNECT_PSU:
+if NO_DEBUG_CONNECT_PSU:
     try: 
       psu = rm.open_resource('USB0::0x1AB1::0x0E11::DP8B241601290::INSTR')
     except:
@@ -214,7 +214,7 @@ while True:
     if event == 'OFF':
         off_all_channel()
 
-    if DEBUG_CONNECT_PSU:
+    if NO_DEBUG_CONNECT_PSU:
         mainMeas()
         
     screenUpdateValue()
