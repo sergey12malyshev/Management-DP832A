@@ -208,13 +208,13 @@ while True:
         ch1.off_channel()
                 
     if event == 'CH1':
-        ch1.run_channel(ch1.voltage, ch1.current, ch1.ocp)
+        ch1.run_channel(24, 0.2, 3) # Fast preset 
         
     if event == 'CH2':
-        ch2.run_channel(ch2.voltage, ch2.current, ch2.ocp)
+        ch2.run_channel(24, 0.2, 3)
         
     if event == 'CH3':
-        ch3.run_channel(ch3.voltage, ch3.current, ch3.ocp)
+        ch3.run_channel(5, 0.3, 0.5)
         
     if event == 'OFF':
         off_all_channel()
