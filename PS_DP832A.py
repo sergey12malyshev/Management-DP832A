@@ -8,24 +8,23 @@
 # - Download and install PyVISA (eg. "pip install -U pyvisa" from CMD)
 # - Download and install PySimpleGUI ("python -m pip install pysimplegui" from CMD)
 
-import PySimpleGUI as sg # https://www.pysimplegui.org/en/latest/cookbook/
+import PySimpleGUI as sg
 import pyvisa
 import time
 
 #--------------------------GLOBAL VARIABLES CONST---------------------------------
 VERSION_MAJOR = 0
 VERSION_MINOR = 3
-VERSION_PATCH = 0
+VERSION_PATCH = 1
 
 DELAY_AFTER_MEAS = 0.01
 
-DEBUG = False
-NO_DEBUG_CONNECT_PSU = True # False для запуска без активного подключения
-#--------------------------GENERAL CLASS------------------------------------------
-# https://proglib.io/p/python-oop
+DEBUG = False                # Will set True to run debug mode
+NO_DEBUG_CONNECT_PSU = True  # Will set False to run without connection
 
+#--------------------------GENERAL CLASS------------------------------------------
 class Canal_DP832(object): # Создали класс 
-    measPower = 0 # Свойства класса(атрибуты)
+    measPower = 0          # Свойства класса(атрибуты)
     measVolt = 0
     measCurrent = 0
     
@@ -36,15 +35,15 @@ class Canal_DP832(object): # Создали класс
         self.ovp = ovp
         self.ocp = ocp
         
-    def run_channel(self, voltage, current, ocp): # Создали метод запуска канала
+    def run_channel(self, voltage, current, ocp): # Создали метод запуска канала    
         if NO_DEBUG_CONNECT_PSU:
             print(psu.query("*IDN?"))
             psu.write(f":INST CH{self.channelNumber}") # Select channel
-            psu.write(f":CURR {current}")   # Set the current 
-            psu.write(f":CURR:PROT {ocp}")  # Set the overcurrent protection value
-            psu.write(":CURR:PROT:STAT ON") # Enable the overcurrent protection function
-            psu.write(f":VOLT {voltage}")   # Set the voltage
-            psu.write(f":OUTP CH{self.channelNumber},ON") # Enable the output of channel """
+            psu.write(f":CURR {current}")              # Set the current 
+            psu.write(f":CURR:PROT {ocp}")             # Set the overcurrent protection value
+            psu.write(":CURR:PROT:STAT ON")            # Enable the overcurrent protection function
+            psu.write(f":VOLT {voltage}")              # Set the voltage
+            psu.write(f":OUTP CH{self.channelNumber},ON") # Enable the output of channel
         window['quote'].update(f'CH{self.channelNumber}: {voltage} V, {current} A, OCP {ocp} A')
     
     def off_channel(self):
@@ -87,7 +86,7 @@ def mainMeas():
         print("Power: " + str(ch2.power) + " mW" + "    Voltage: " + str(ch2.volt) + " V" + "    Current: " + str(ch2.current) + " A")
         print("Power: " + str(ch3.power) + " mW" + "    Voltage: " + str(ch3.volt) + " V" + "    Current: " + str(ch3.current) + " A")  
     
-    ch1.measPower = measPower(1) # Создали атрибут объекта	
+    ch1.measPower = measPower(1)         # Создали атрибут объекта	
     ch1.measVolt = round(measVolt(1), 2)
     ch1.measCurrent = round(measCurrent(1), 4)
  
@@ -101,6 +100,21 @@ def mainMeas():
     
     if DEBUG: 
         debugOut()
+        
+def checkInputVoltage(value):
+    if value > 33:
+        raise Exception("Voltage")
+    return value
+    
+def checkInputVoltage2(value):
+    if value > 5.5:
+        raise Exception("Voltage")
+    return value
+    
+def checkInputCurrent(value):
+    if value > 3.3:
+        raise Exception("Current")
+    return value 
     
 def screenUpdateValue():
     window['-OUTPUT_VOLT_1-'].update(str(ch1.measVolt) + " V") 
@@ -146,64 +160,86 @@ window = sg.Window('Run DP832A', layout)
 
 while True:
     event, values = window.read(timeout=200)   # Read the event that happened and the values dictionary, timeout=200 - не блокирующий режим  
-    if DEBUG: print(event, values)
+    
+    if DEBUG: 
+        print(event, values)
     
     if event == sg.WIN_CLOSED or event == 'Exit':     # If user closed window with X or if user clicked "Exit" button then exit
         break
+        
     if event == 'About': 
         sg.popup('Run DP832A', f'Version {VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}', '2022, Ekaterinburg', sg.get_versions())    
         
     if event == 'Set CH1':
-        if values['-VOLTAGE-'] > '0':
-            ch1.voltage = values['-VOLTAGE-']
-            window['voltage_out'].update(values['-VOLTAGE-'])
-        if values['-CURRENT-'] > '0':
-            ch1.current = values['-CURRENT-']
-            window['current_out'].update(values['-CURRENT-'])
-        if values['-OVP-'] > '0':
-            ch1.ovp = values['-OVP-']
-            window['OVP_out'].update(values['-OVP-'])
-        if values['-OCP-'] > '0':
-            ch1.ocp = values['-OCP-']
-            window['OCP_out'].update(values['-OCP-'])  
-        ch1.run_channel(ch1.voltage, ch1.current, ch1.ocp)
+        try:
+            if values['-VOLTAGE-'] > '0':                    # Проверка на ноль
+                ch1.voltage = float(values['-VOLTAGE-'])     # Проверка на ввод цифры(а не буквы)
+                ch1.voltage = checkInputVoltage(ch1.voltage) # Проверка на верхний диапазон
+                window['voltage_out'].update(values['-VOLTAGE-'])
+            if values['-CURRENT-'] > '0':
+                ch1.current = checkInputCurrent(float(values['-CURRENT-']))
+                window['current_out'].update(values['-CURRENT-'])
+            if values['-OVP-'] > '0':
+                ch1.ovp = checkInputVoltage(float(values['-OVP-']))
+                window['OVP_out'].update(values['-OVP-'])
+            if values['-OCP-'] > '0':
+                ch1.ocp = checkInputCurrent(float(values['-OCP-']))
+                window['OCP_out'].update(values['-OCP-'])  
+                
+            ch1.run_channel(ch1.voltage, ch1.current, ch1.ocp)
+            
+        except Exception as e:
+            window['quote'].update('Value input error CH1: '+ str(e))
+            print("Value input CH1 error: "+ str(e))        
 
     if event == 'Reset CH1':
         ch1.off_channel()
                 
     if event == 'Set CH2':
-        if values['-VOLTAGE2-'] > '0':
-            ch2.voltage = values['-VOLTAGE2-']
-            window['voltage_out2'].update(values['-VOLTAGE2-'])
-        if values['-CURRENT2-'] > '0':
-            ch2.current = values['-CURRENT2-']
-            window['current_out2'].update(values['-CURRENT2-'])
-        if values['-OVP2-'] > '0':
-            ch2.ovp = values['-OVP2-']
-            window['OVP_out2'].update(values['-OVP2-'])
-        if values['-OCP2-'] > '0':
-            ch2.ocp = values['-OCP2-']
-            window['OCP_out2'].update(values['-OCP2-'])  
-        ch2.run_channel(ch2.voltage, ch2.current, ch2.ocp)
+        try:
+            if values['-VOLTAGE2-'] > '0':
+                ch2.voltage = checkInputVoltage(float(values['-VOLTAGE2-']))
+                window['voltage_out2'].update(values['-VOLTAGE2-'])
+            if values['-CURRENT2-'] > '0':
+                ch2.current = checkInputCurrent(float(values['-CURRENT2-']))
+                window['current_out2'].update(values['-CURRENT2-'])
+            if values['-OVP2-'] > '0':
+                ch2.ovp = checkInputVoltage(float(values['-OVP2-']))
+                window['OVP_out2'].update(values['-OVP2-'])
+            if values['-OCP2-'] > '0':
+               ch2.ocp = checkInputCurrent(float(values['-OCP2-']))
+               window['OCP_out2'].update(values['-OCP2-'])  
+               
+            ch2.run_channel(ch2.voltage, ch2.current, ch2.ocp)
+            
+        except Exception as e:
+            window['quote'].update('Value input error CH2: '+ str(e))
+            print("Value input CH2 error: "+ str(e)) 
                 
     if event == 'Reset CH2':
         ch1.off_channel()
     
     if event == 'Set CH3':
-        if values['-VOLTAGE3-'] > '0':
-            ch3.voltage = values['-VOLTAGE3-']
-            window['voltage_out3'].update(values['-VOLTAGE3-'])
-        if values['-CURRENT3-'] > '0':
-            ch3.current = values['-CURRENT3-']
-            window['current_out3'].update(values['-CURRENT3-'])
-        if values['-OVP3-'] > '0':
-            ch3.ovp = values['-OVP3-']
-            window['OVP_out3'].update(values['-OVP3-'])
-        if values['-OCP3-'] > '0':
-            ch3.ocp = values['-OCP3-']
-            window['OCP_out3'].update(values['-OCP3-'])  
-        ch3.run_channel(ch3.voltage, ch3.current, ch3.ocp)
-                
+        try:
+            if values['-VOLTAGE3-'] > '0':
+                ch3.voltage = checkInputVoltage2(float(values['-VOLTAGE3-']))
+                window['voltage_out3'].update(values['-VOLTAGE3-'])
+            if values['-CURRENT3-'] > '0':
+                ch3.current = checkInputCurrent(float(values['-CURRENT3-']))
+                window['current_out3'].update(values['-CURRENT3-'])
+            if values['-OVP3-'] > '0':
+               ch3.ovp = checkInputVoltage2(float(values['-OVP3-']))
+               window['OVP_out3'].update(values['-OVP3-'])
+            if values['-OCP3-'] > '0':
+               ch3.ocp = checkInputCurrent(float(values['-OCP3-']))
+               window['OCP_out3'].update(values['-OCP3-'])  
+            ch3.run_channel(ch3.voltage, ch3.current, ch3.ocp)
+            
+        except Exception as e:
+        
+            window['quote'].update('Value input error CH2: '+ str(e))
+            print("Value input CH2 error: "+ str(e))         
+            
     if event == 'Reset CH3':
         ch1.off_channel()
                 

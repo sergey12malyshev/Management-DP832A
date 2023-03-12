@@ -15,3 +15,5 @@ http://www.batronix.com/pdf/Rigol/ProgrammingGuide/DP800_ProgrammingGuide_EN.pdf
 # Useful links
  - PEP8 https://pythonworld.ru/osnovy/pep-8-rukovodstvo-po-napisaniyu-koda-na-python.html
  - PEP257 https://pythonworld.ru/osnovy/dokumentirovanie-koda-v-python-pep-257.html 
+ - The PySimpleGUI Cookbook https://www.pysimplegui.org/en/latest/cookbook/
+ - Object-oriented programming (OOP) https://proglib.io/p/python-oop
