@@ -20,7 +20,7 @@ VERSION_PATCH = 2
 DELAY_AFTER_MEAS = 0.01
 
 DEBUG = False                # Will set True to run debug mode
-NO_DEBUG_CONNECT_PSU = True  # Will set False to run without connection
+NO_DEBUG_CONNECT_PSU = False  # Will set False to run without connection
 
 #--------------------------GENERAL CLASS------------------------------------------
 class Canal_DP832(object): # Создали класс 
@@ -117,7 +117,7 @@ def checkInputVoltage2(value):
     return value
     
 def checkInputOVP2(value):
-    if value > 5.3:
+    if value > 5.5:
         raise Exception("Voltage")
     return value
     
