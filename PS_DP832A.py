@@ -15,7 +15,7 @@ import time
 #--------------------------GLOBAL VARIABLES CONST---------------------------------
 VERSION_MAJOR = 0
 VERSION_MINOR = 3
-VERSION_PATCH = 1
+VERSION_PATCH = 2
 
 DELAY_AFTER_MEAS = 0.01
 
@@ -44,20 +44,20 @@ class Canal_DP832(object): # Создали класс
             psu.write(":CURR:PROT:STAT ON")            # Enable the overcurrent protection function
             psu.write(f":VOLT {voltage}")              # Set the voltage
             psu.write(f":OUTP CH{self.channelNumber},ON") # Enable the output of channel
-        window['quote'].update(f'CH{self.channelNumber}: {voltage} V, {current} A, OCP {ocp} A')
+        window['quote'].update(f'CH{self.channelNumber}: {voltage} V, {current} A, OCP {ocp} A', text_color = 'yellow')
     
     def off_channel(self):
         if NO_DEBUG_CONNECT_PSU:
             psu.write(f":OUTP CH{self.channelNumber},OFF") # Disable the output of channel
         print(f"channel {self.channelNumber} DP832A disable")
-        window['quote'].update(f'Output CH{self.channelNumber} disable')
+        window['quote'].update(f'Output CH{self.channelNumber} disable', text_color = 'yellow')
            
 #--------------------------GENERAL FUNCTIONS---------------------------------------
 def off_all_channel():
     ch1.off_channel();
     ch2.off_channel();
     ch3.off_channel();
-    window['quote'].update('Output all disable')
+    window['quote'].update('Output all disable', text_color = 'yellow')
         
 def measVolt(chan): 			
     cmd1 = ':MEAS:VOLT? CH%s' %chan
@@ -102,16 +102,31 @@ def mainMeas():
         debugOut()
         
 def checkInputVoltage(value):
+    if value > 32:
+        raise Exception("Voltage")
+    return value
+    
+def checkInputOVP(value):
+    if value > 32:
+        raise Exception("Voltage")
+    return value    
+    
+def checkInputVoltage2(value):
+    if value > 5.3:
+        raise Exception("Voltage")
+    return value
+    
+def checkInputOVP2(value):
     if value > 33:
         raise Exception("Voltage")
     return value
     
-def checkInputVoltage2(value):
-    if value > 5.5:
-        raise Exception("Voltage")
-    return value
-    
 def checkInputCurrent(value):
+    if value > 3.2:
+        raise Exception("Current")
+    return value 
+    
+def checkInputOCP(value):
     if value > 3.3:
         raise Exception("Current")
     return value 
@@ -140,20 +155,20 @@ ch2 = Canal_DP832(2, 24, 0.3, 33, 3)
 ch3 = Canal_DP832(3, 5, 0.3, 5.5, 0.5) 
 
 #-------Сreate the GUI-----------
-layout =  [ [sg.Frame('CH1', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.Text(f'{ch1.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_1-', text_color='yellow'), sg.Text(f'{ch1.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_1-', text_color='yellow')], 
+layout =  [ [sg.Frame('CH1: 32 V 3.2 A', [[sg.Button('Set CH1'), sg.Button('Reset CH1'), sg.Text(f'{ch1.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_1-', text_color='yellow'), sg.Text(f'{ch1.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_1-', text_color='yellow')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch1.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out'), sg.InputText(key='-VOLTAGE-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch1.ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out'), sg.InputText(key='-OVP-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch1.current}', size=(4, 1), font=('Helvetica 11'), key='current_out'), sg.InputText(key='-CURRENT-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch1.ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out'), sg.InputText(key='-OCP-', size=(6, 1))]])],
             
-            [sg.Frame('CH2', [[sg.Button('Set CH2'), sg.Button('Reset CH2'), sg.Text(f'{ch2.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_2-', text_color = 'cyan'), sg.Text(f'{ch2.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_2-', text_color = 'cyan')], 
+            [sg.Frame('CH2: 32 V 3.2 A', [[sg.Button('Set CH2'), sg.Button('Reset CH2'), sg.Text(f'{ch2.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_2-', text_color = 'cyan'), sg.Text(f'{ch2.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_2-', text_color = 'cyan')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch2.voltage}', size=(4, 1), font=('Helvetica 11'), key='voltage_out2'), sg.InputText(key='-VOLTAGE2-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch2.ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out2'), sg.InputText(key='-OVP2-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch2.current}', size=(4, 1), font=('Helvetica 11'), key='current_out2'), sg.InputText(key='-CURRENT2-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch2.ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out2'), sg.InputText(key='-OCP2-', size=(6, 1))]])],
             
-            [sg.Frame('CH3', [[sg.Button('Set CH3'), sg.Button('Reset CH3'), sg.Text(f'{ch3.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_3-', text_color = 'magenta'), sg.Text(f'{ch3.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_3-', text_color = 'magenta')], 
+            [sg.Frame('CH3: 5 V 3.2 A', [[sg.Button('Set CH3'), sg.Button('Reset CH3'), sg.Text(f'{ch3.measVolt}', size=(6, 1), font=('Helvetica', 16), key='-OUTPUT_VOLT_3-', text_color = 'magenta'), sg.Text(f'{ch3.measCurrent}', size=(7, 1), font=('Helvetica', 16), key='-OUTPUT_CURR_3-', text_color = 'magenta')], 
             [sg.Text('Voltage, V:', size=(8, 1)), sg.Text(f'{ch3.voltage} ', size=(4, 1), font=('Helvetica 11'), key='voltage_out3'), sg.InputText(key='-VOLTAGE3-', size=(6, 1)), sg.Text('OVP:', size=(4, 1)), sg.Text(f'{ch3.ovp}', size=(2, 1), font=('Helvetica 11'), key='OVP_out3'), sg.InputText(key='-OVP3-', size=(6, 1))],
             [sg.Text('Current, A:', size=(8, 1)), sg.Text(f'{ch3.current}', size=(4, 1), font=('Helvetica 11'), key='current_out3'), sg.InputText(key='-CURRENT3-', size=(6, 1)), sg.Text('OCP:', size=(4, 1)), sg.Text(f'{ch3.ocp}', size=(2, 1), font=('Helvetica 11'), key='OCP_out3'), sg.InputText(key='-OCP3-', size=(6, 1))]])],
             
             [sg.Frame('Fast preset', [[sg.Button('CH1'), sg.Button('CH2'), sg.Button('CH3'), sg.Button('OFF')]]), sg.Frame('System', [[sg.Button('Exit', size=(5, 1)), sg.Button('About', size=(5, 1))]])],
-            [sg.Text('This is GUI driving Rigol DP832A', key='quote')]
+            [sg.Text('This is GUI driving Rigol DP832A', key='quote', text_color='yellow')]
          ]
          
 window = sg.Window('Run DP832A', layout)
@@ -180,16 +195,16 @@ while True:
                 ch1.current = checkInputCurrent(float(values['-CURRENT-']))
                 window['current_out'].update(values['-CURRENT-'])
             if values['-OVP-'] > '0':
-                ch1.ovp = checkInputVoltage(float(values['-OVP-']))
+                ch1.ovp = checkInputOVP(float(values['-OVP-']))
                 window['OVP_out'].update(values['-OVP-'])
             if values['-OCP-'] > '0':
-                ch1.ocp = checkInputCurrent(float(values['-OCP-']))
+                ch1.ocp = checkInputOCP(float(values['-OCP-']))
                 window['OCP_out'].update(values['-OCP-'])  
                 
             ch1.run_channel(ch1.voltage, ch1.current, ch1.ocp)
             
         except Exception as e:
-            window['quote'].update('Value input error CH1: '+ str(e))
+            window['quote'].update('Value input error CH1: '+ str(e), text_color ='red')
             print("Value input CH1 error: "+ str(e))        
 
     if event == 'Reset CH1':
@@ -204,20 +219,20 @@ while True:
                 ch2.current = checkInputCurrent(float(values['-CURRENT2-']))
                 window['current_out2'].update(values['-CURRENT2-'])
             if values['-OVP2-'] > '0':
-                ch2.ovp = checkInputVoltage(float(values['-OVP2-']))
+                ch2.ovp = checkInputOVP(float(values['-OVP2-']))
                 window['OVP_out2'].update(values['-OVP2-'])
             if values['-OCP2-'] > '0':
-               ch2.ocp = checkInputCurrent(float(values['-OCP2-']))
+               ch2.ocp = checkInputOCP(float(values['-OCP2-']))
                window['OCP_out2'].update(values['-OCP2-'])  
                
             ch2.run_channel(ch2.voltage, ch2.current, ch2.ocp)
             
         except Exception as e:
-            window['quote'].update('Value input error CH2: '+ str(e))
+            window['quote'].update('Value input error CH2: '+ str(e), text_color ='red')
             print("Value input CH2 error: "+ str(e)) 
                 
     if event == 'Reset CH2':
-        ch1.off_channel()
+        ch2.off_channel()
     
     if event == 'Set CH3':
         try:
@@ -228,20 +243,20 @@ while True:
                 ch3.current = checkInputCurrent(float(values['-CURRENT3-']))
                 window['current_out3'].update(values['-CURRENT3-'])
             if values['-OVP3-'] > '0':
-               ch3.ovp = checkInputVoltage2(float(values['-OVP3-']))
+               ch3.ovp = checkInputOVP2(float(values['-OVP3-']))
                window['OVP_out3'].update(values['-OVP3-'])
             if values['-OCP3-'] > '0':
-               ch3.ocp = checkInputCurrent(float(values['-OCP3-']))
+               ch3.ocp = checkInputOCP(float(values['-OCP3-']))
                window['OCP_out3'].update(values['-OCP3-'])  
             ch3.run_channel(ch3.voltage, ch3.current, ch3.ocp)
             
         except Exception as e:
         
-            window['quote'].update('Value input error CH2: '+ str(e))
+            window['quote'].update('Value input error CH3: '+ str(e), text_color ='red')
             print("Value input CH2 error: "+ str(e))         
             
     if event == 'Reset CH3':
-        ch1.off_channel()
+        ch3.off_channel()
                 
     if event == 'CH1':
         ch1.run_channel(24, 0.2, 3) # Fast preset 
