@@ -107,7 +107,7 @@ def checkInputVoltage(value):
     return value
     
 def checkInputOVP(value):
-    if value > 32:
+    if value > 33:
         raise Exception("Voltage")
     return value    
     
